@@ -95,6 +95,7 @@ function opigno_scorm_opigno_scorm_register_cmi_paths($scorm_version) {
         'cmi.student_preference.language' => array(),
         'cmi.student_preference.speed' => array(),
         'cmi.student_preference.text' => array(),
+        'cmi.core.score._children' => array(),
       );
       break;
   }
@@ -141,6 +142,7 @@ function opigno_scorm_opigno_scorm_register_cmi_data($scorm, $scos, $scorm_versi
         'cmi.student_preference.language' => array(),
         'cmi.student_preference.speed' => array(),
         'cmi.student_preference.text' => array(),
+        'cmi.core.score._children' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.core.score._children', 'raw,min,max'),
       );
       break;
   }
