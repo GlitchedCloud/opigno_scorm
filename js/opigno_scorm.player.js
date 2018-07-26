@@ -95,7 +95,7 @@
             }
             else {
               if (!scormAPIobject.isTerminated) {
-                scormAPIobject.Terminate('');
+                scormAPIobject.Commit('');
                 alertDataStored = true;
                 //return Drupal.t('It seems you did not finish the SCORM course, or maybe the SCORM course did not save your results. Should we try to store it for you ?');
               }
