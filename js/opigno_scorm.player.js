@@ -78,7 +78,7 @@
               type: 'post',
               success: function(json) {
                 if (alertDataStored) {
-                  alert(Drupal.t('We successfully stored your results. You can now proceed further.'));
+                  console.log(Drupal.t('We successfully stored your results. You can now proceed further.'));
                 }
               }
             });
