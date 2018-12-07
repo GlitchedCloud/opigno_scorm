@@ -343,7 +343,9 @@ class OpignoScorm {
     foreach ($manifest['children'] as $child) {
       if ($child['name'] == 'METADATA') {
         foreach ($child['children'] as $meta) {
-          $metadata[strtolower($meta['name'])] = $meta['tagData'];
+          if (isset($meta['tagData'])) {
+            $metadata[strtolower($meta['name'])] = $meta['tagData'];
+          }
         }
       }
     }
