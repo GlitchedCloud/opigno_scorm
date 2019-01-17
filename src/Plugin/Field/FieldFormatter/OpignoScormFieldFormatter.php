@@ -2,10 +2,7 @@
 
 namespace Drupal\opigno_scorm\Plugin\Field\FieldFormatter;
 
-use Drupal\Component\Utility\Html;
-use Drupal\Core\Field\FieldItemInterface;
 use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Field\Plugin\Field\FieldFormatter\EntityReferenceFormatterBase;
 
 /**
@@ -38,7 +35,7 @@ class OpignoScormFieldFormatter extends EntityReferenceFormatterBase {
       }
       else {
         $elements[$delta] = [
-          '#markup' => $this->t("As per <a href='!link' target='_blank'>SCORM.2004.3ED.ConfReq.v1.0</a>, only <em>only one SCO can be launched at a time.</em> To enforce this, only one SCORM package is loaded inside the player on this page at a time.", array('!link' => 'http://www.adlnet.gov/wp-content/uploads/2011/07/SCORM.2004.3ED.ConfReq.v1.0.pdf')),
+          '#markup' => $this->t("As per <a href='!link' target='_blank'>SCORM.2004.3ED.ConfReq.v1.0</a>, only <em>only one SCO can be launched at a time.</em> To enforce this, only one SCORM package is loaded inside the player on this page at a time.", ['!link' => 'http://www.adlnet.gov/wp-content/uploads/2011/07/SCORM.2004.3ED.ConfReq.v1.0.pdf']),
         ];
       }
     }

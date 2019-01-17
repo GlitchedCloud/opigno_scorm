@@ -2,14 +2,19 @@
 
 namespace Drupal\opigno_scorm;
 
-
 use Drupal\Core\Database\Connection;
 use Drupal\file\Entity\File;
 
+/**
+ * Class OpignoScorm.
+ */
 class OpignoScorm {
 
   protected $database;
 
+  /**
+   * OpignoScorm constructor.
+   */
   public function __construct(Connection $database) {
     $this->database = $database;
   }
@@ -120,7 +125,7 @@ class OpignoScorm {
           $error = 'ER_SEEK';
           break;
       }
-      \Drupal::logger('opigno_scorm')->error("An error occured when unziping the SCORM package data. Error: !error", array('!error' => $error));
+      \Drupal::logger('opigno_scorm')->error("An error occured when unziping the SCORM package data. Error: !error", ['!error' => $error]);
     }
 
     return FALSE;
@@ -130,8 +135,12 @@ class OpignoScorm {
    * Save a SCORM package information.
    *
    * @param object $scorm
+   *   Scorm object.
    *
    * @return bool
+   *   Save flag.
+   *
+   * @throws \Exception
    */
   public function scormSave($scorm) {
     $connection = $this->database;
@@ -156,8 +165,12 @@ class OpignoScorm {
    * Save a SCO information.
    *
    * @param object $sco
+   *   Sco object.
    *
    * @return bool
+   *   Sco save flag.
+   *
+   * @throws \Exception
    */
   public function scormScoSave($sco) {
     $connection = $this->database;
@@ -201,12 +214,12 @@ class OpignoScorm {
         }
 
         $connection->insert('opigno_scorm_package_sco_attributes')
-          ->fields(array(
+          ->fields([
             'sco_id' => $sco->id,
             'attribute' => $key,
             'value' => $value,
             'serialized' => $serialized,
-          ))
+          ])
           ->execute();
       }
     }
@@ -217,13 +230,16 @@ class OpignoScorm {
   /**
    * Get Scorm data by it's file id.
    *
-   * @param object \Drupal\file\Entity\File $file
+   * @param \Drupal\file\Entity\File $file
    *   File entity.
+   *
+   * @return mixed
+   *   Scorm data.
    */
   public function scormLoadByFileEntity(File $file) {
     $connection = $this->database;
     return $connection->select('opigno_scorm_packages', 'o')
-      ->fields('o', array())
+      ->fields('o', [])
       ->condition('fid', $file->id())
       ->execute()
       ->fetchObject();
@@ -232,14 +248,16 @@ class OpignoScorm {
   /**
    * Load a SCORM package information.
    *
-   * @param int $id
+   * @param int $scorm_id
+   *   Scorm ID.
    *
    * @return object|false
+   *   SCORM package information.
    */
   public function scormLoadById($scorm_id) {
     $connection = $this->database;
     return $connection->select('opigno_scorm_packages', 'o')
-      ->fields('o', array())
+      ->fields('o', [])
       ->condition('id', $scorm_id)
       ->execute()
       ->fetchObject();
@@ -248,14 +266,16 @@ class OpignoScorm {
   /**
    * Load a SCO information.
    *
-   * @param int $id
+   * @param int $sco_id
+   *   Sco ID.
    *
    * @return object|false
+   *   SCO information.
    */
   public function scormLoadSco($sco_id) {
     $connection = $this->database;
     $sco = $connection->select('opigno_scorm_package_scos', 'o')
-      ->fields('o', array())
+      ->fields('o', [])
       ->condition('id', $sco_id)
       ->execute()
       ->fetchObject();
@@ -272,6 +292,9 @@ class OpignoScorm {
    *
    * @param string $manifest_file
    *   Path to manifest file.
+   *
+   * @return array
+   *   Manifest data.
    */
   public function scormExtractManifestData($manifest_file) {
     $data = [
@@ -298,7 +321,8 @@ class OpignoScorm {
     // Extract the global metadata information.
     $data['metadata'] = $this->scormExtractManifestMetadata($manifest);
 
-    // Extract the SCOs (course items). Gets the default SCO and a list of all SCOs.
+    // Extract the SCOs (course items).
+    // Gets the default SCO and a list of all SCOs.
     $data['scos'] = $this->scormExtractManifestScos($manifest);
 
     // Extract the resources, so we can combine the SCOs and resources.
@@ -314,15 +338,17 @@ class OpignoScorm {
    * Helper function to load a SCO attributes.
    *
    * @param int $sco_id
+   *   Sco ID.
    *
    * @return array
+   *   SCO attributes.
    */
   private function scormLoadScormAttributes($sco_id) {
     $connection = $this->database;
-    $attributes = array();
+    $attributes = [];
 
     $result = $connection->select('opigno_scorm_package_sco_attributes', 'o')
-      ->fields('o', array('attribute', 'value', 'serialized'))
+      ->fields('o', ['attribute', 'value', 'serialized'])
       ->condition('sco_id', $sco_id)
       ->execute();
 
@@ -336,9 +362,13 @@ class OpignoScorm {
   /**
    * Extract manifest metadata from the manifest.
    *
-   * @param array $manifest.
+   * @param array $manifest
+   *   Manifest.
+   *
+   * @return array
+   *   Manifest metadata.
    */
-  private function scormExtractManifestMetadata($manifest) {
+  private function scormExtractManifestMetadata(array $manifest) {
     $metadata = [];
     foreach ($manifest['children'] as $child) {
       if ($child['name'] == 'METADATA') {
@@ -355,9 +385,13 @@ class OpignoScorm {
   /**
    * Extract scos from the manifest.
    *
-   * @param array $manifest.
+   * @param array $manifest
+   *   Manifest.
+   *
+   * @return array
+   *   Scos.
    */
-  private function scormExtractManifestScos($manifest) {
+  private function scormExtractManifestScos(array $manifest) {
     $items = ['items' => []];
     foreach ($manifest['children'] as $child) {
       if ($child['name'] == 'ORGANIZATIONS') {
@@ -377,17 +411,22 @@ class OpignoScorm {
   /**
    * Helper function to recursively extract the manifest SCO items.
    *
-   * The data is extracted as a flat array - it contains to hierarchy. Because of this,
-   * the items are not extracted in logical order. However, each "level" is given a weight
-   * which allows us to know how to organize them.
+   * The data is extracted as a flat array - it contains to hierarchy.
+   * Because of this, the items are not extracted in logical order.
+   * However, each "level" is given a weight which allows us
+   * to know how to organize them.
    *
    * @param array $manifest
-   * @param string|int $parent_identifier = 0
-   * @param string $organization = ''
+   *   Manifest.
+   * @param string|int $parent_identifier
+   *   Parent identifier.
+   * @param string $organization
+   *   Organization.
    *
    * @return array
+   *   Manifest SCO items.
    */
-  private function scormExtractManifestScosItems($manifest, $parent_identifier = 0, $organization = '') {
+  private function scormExtractManifestScosItems(array $manifest, $parent_identifier = 0, $organization = '') {
     $items = [];
     $weight = 0;
 
@@ -442,7 +481,7 @@ class OpignoScorm {
         }
 
         // Find any sequencing control modes, which are also child nodes.
-        $control_modes = array();
+        $control_modes = [];
         foreach ($item['children'] as $child) {
           if ($child['name'] == 'IMSSS:SEQUENCING') {
             $control_modes = $this->scormExtractItemSequencingControlModes($child);
@@ -469,8 +508,10 @@ class OpignoScorm {
           'attributes' => $control_modes + $attributes,
         ];
 
-        // The first item is not an "item", but an "organization" node. This is the organization
-        // for the remainder of the tree. Get it, and pass it along, so we know to which organization
+        // The first item is not an "item",
+        // but an "organization" node. This is the organization
+        // for the remainder of the tree.
+        // Get it, and pass it along, so we know to which organization
         // the SCOs belong.
         if (empty($organization) && $item['name'] == 'ORGANIZATION') {
           $organization = $identifier;
@@ -488,15 +529,17 @@ class OpignoScorm {
   /**
    * Extract the manifest SCO resources.
    *
-   * We only extract resource information that is relevant to us. We don't care about
-   * references files, dependencies, etc. Only about the href attribute, type and
-   * identifier.
+   * We only extract resource information that is relevant to us.
+   * We don't care about references files, dependencies, etc.
+   * Only about the href attribute, type and identifier.
    *
    * @param array $manifest
+   *   Manifest.
    *
    * @return array
+   *   Manifest SCO resources.
    */
-  private function scormExtractManifestResources($manifest) {
+  private function scormExtractManifestResources(array $manifest) {
     $items = [];
     foreach ($manifest['children'] as $child) {
       if ($child['name'] == 'RESOURCES') {
@@ -546,15 +589,18 @@ class OpignoScorm {
   /**
    * Combine resources and SCO data.
    *
-   * Update SCO data to include resource information (if necessary). Return the updated
-   * SCO list.
+   * Update SCO data to include resource information (if necessary).
+   * Return the updated SCO list.
    *
    * @param array $scos
+   *   Scos.
    * @param array $resources
+   *   Resources.
    *
    * @return array
+   *   SCO data.
    */
-  private function scormCombineManifestScoAndResources($scos, $resources) {
+  private function scormCombineManifestScoAndResources(array $scos, array $resources) {
     if (!empty($scos)) {
       foreach ($scos as &$sco) {
         // If the SCO has a resource identifier ("identifierref"),
@@ -584,7 +630,7 @@ class OpignoScorm {
       }
     }
     // If scos are empty, but resources exists.
-    else if (!empty($resources)) {
+    elseif (!empty($resources)) {
       // Init scos array.
       $scos = [];
       foreach ($resources as $resource) {
@@ -627,10 +673,12 @@ class OpignoScorm {
    * (e.g.: display the tree or not, skip SCOs, etc).
    *
    * @param array $item_manifest
+   *   Manifest.
    *
    * @return array
+   *   SCO item sequencing control modes.
    */
-  private function scormExtractItemSequencingControlModes($item_manifest) {
+  private function scormExtractItemSequencingControlModes(array $item_manifest) {
     $defaults = [
       'control_mode_choice' => TRUE,
       'control_mode_flow' => FALSE,
@@ -645,7 +693,6 @@ class OpignoScorm {
         // Note: boolean attributes are stored as a strings. PHP does not know
         // how to cast 'false' to FALSE. Use string comparisons to bypass
         // this limitation by PHP. See below.
-
         if (!empty($child['attrs']['CHOICE'])) {
           $control_modes['control_mode_choice'] = strtolower($child['attrs']['CHOICE']) === 'true';
         }
@@ -666,14 +713,16 @@ class OpignoScorm {
   /**
    * Extract the manifest SCO item sequencing objective.
    *
-   * This extracts sequencing objectives from an item. Objectives allow the system
-   * to know how to "grade" the SCORM object.
+   * This extracts sequencing objectives from an item.
+   * Objectives allow the system to know how to "grade" the SCORM object.
    *
    * @param array $item_manifest
+   *   Manifest.
    *
    * @return array
+   *   SCO item sequencing objective.
    */
-  private function scormExtractItemSequencingObjectives($item_manifest) {
+  private function scormExtractItemSequencingObjectives(array $item_manifest) {
     $objectives = [];
     foreach ($item_manifest['children'] as $child) {
       if ($child['name'] == 'IMSSS:OBJECTIVES') {
@@ -686,9 +735,10 @@ class OpignoScorm {
           }
 
           if ($child_objective['name'] == 'IMSSS:PRIMARYOBJECTIVE') {
-            // Note: boolean attributes are stored as a strings. PHP does not know
-            // how to cast 'false' to FALSE. Use string comparisons to bypass
-            // this limitation by PHP. See below.
+            // Note: boolean attributes are stored as a strings.
+            // PHP does not know how to cast 'false' to FALSE.
+            // Use string comparisons to bypass this limitation by PHP.
+            // See below.
             $satisfied_by_measure = FALSE;
             if (!empty($child_objective['attrs']['SATISFIEDBYMEASURE'])) {
               $satisfied_by_measure = strtolower($child_objective['attrs']['SATISFIEDBYMEASURE']) === 'true';

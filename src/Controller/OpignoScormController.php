@@ -7,6 +7,9 @@ use Drupal\Core\Routing\TrustedRedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+/**
+ * Class OpignoScormController.
+ */
 class OpignoScormController extends ControllerBase {
 
   /**

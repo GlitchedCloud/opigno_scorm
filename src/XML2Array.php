@@ -2,12 +2,18 @@
 
 namespace Drupal\opigno_scorm;
 
+/**
+ * Class XML2Array.
+ */
 class XML2Array {
 
-  private $output = array();
+  private $output = [];
   private $xml_parser;
   private $xml_string;
 
+  /**
+   * Parse function.
+   */
   public function parse($xlm_string) {
     $this->xml_parser = xml_parser_create();
     xml_set_object($this->xml_parser, $this);
@@ -17,11 +23,7 @@ class XML2Array {
 
     $this->xml_string = xml_parse($this->xml_parser, $xlm_string);
     if (!$this->xml_string) {
-//      watchdog('opigno_scorm', sprintf(
-//        "XML error: %s at line %d",
-//        xml_error_string(xml_get_error_code($this->xml_parser)),
-//        xml_get_current_line_number($this->xml_parser)
-//      ), array(), WATCHDOG_ERROR);
+
     }
 
     xml_parser_free($this->xml_parser);
@@ -29,11 +31,17 @@ class XML2Array {
     return $this->output;
   }
 
+  /**
+   * Tag open function.
+   */
   public function tagOpen($parser, $name, $attrs) {
-    $tag = array("name" => $name, "attrs" => $attrs);
+    $tag = ["name" => $name, "attrs" => $attrs];
     array_push($this->output, $tag);
   }
 
+  /**
+   * Tag data function.
+   */
   public function tagData($parser, $tagData) {
     if (trim($tagData)) {
       if (isset($this->output[count($this->output) - 1]['tagData'])) {
@@ -45,8 +53,12 @@ class XML2Array {
     }
   }
 
+  /**
+   * Tag closed function.
+   */
   public function tagClosed($parser, $name) {
     $this->output[count($this->output) - 2]['children'][] = $this->output[count($this->output) - 1];
     array_pop($this->output);
   }
+
 }

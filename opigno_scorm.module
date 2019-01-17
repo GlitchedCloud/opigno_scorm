@@ -35,10 +35,9 @@ function opigno_scorm_theme() {
 /**
  * Get the available CMI paths for the SCORM player.
  *
- * Invokes the hook_opigno_scorm_register_cmi_paths() on all implementing modules
- * to retrieve data to pass to the SCORM player.
- *
- * @return array
+ * Invokes the hook_opigno_scorm_register_cmi_paths()
+ * on all implementing modules to retrieve data
+ * to pass to the SCORM player.
  */
 function opigno_scorm_add_cmi_paths($scorm_version) {
   $paths = \Drupal::moduleHandler()->invokeAll('opigno_scorm_register_cmi_paths', [$scorm_version]);
@@ -49,16 +48,25 @@ function opigno_scorm_add_cmi_paths($scorm_version) {
 /**
  * Get the CMI data for the SCORM player.
  *
- * Invokes the hook_opigno_scorm_ui_register_cmi_data() on all implementing modules
- * to retrieve data to pass to the SCORM player.
+ * Invokes the hook_opigno_scorm_ui_register_cmi_data()
+ * on all implementing modules to retrieve data
+ * to pass to the SCORM player.
  *
  * @param object $scorm
+ *   Scorm object.
  * @param array $scos
+ *   Scos array.
  *
  * @return array
+ *   Cmi data.
  */
-function opigno_scorm_add_cmi_data($scorm, $scos, $scorm_version) {
-  $data = \Drupal::moduleHandler()->invokeAll('opigno_scorm_register_cmi_data', [$scorm, $scos, $scorm_version]);
+function opigno_scorm_add_cmi_data($scorm, array $scos, $scorm_version) {
+  $data = \Drupal::moduleHandler()
+    ->invokeAll('opigno_scorm_register_cmi_data', [
+      $scorm,
+      $scos,
+      $scorm_version,
+    ]);
   \Drupal::moduleHandler()->alter('opigno_scorm_register_cmi_data', $data, $scorm, $scos);
   return $data;
 }
@@ -69,34 +77,34 @@ function opigno_scorm_add_cmi_data($scorm, $scos, $scorm_version) {
 function opigno_scorm_opigno_scorm_register_cmi_paths($scorm_version) {
   switch ($scorm_version) {
     case '2004':
-      $data = array(
-        'cmi.location' => array(),
-        'cmi.completion_status' => array(),
-        'cmi.exit' => array(),
-        'cmi.learner_id' => array(),
-        'cmi.learner_name' => array(),
-        'cmi.learner_preference._children' => array(),
-        'cmi.learner_preference.audio_level' => array(),
-        'cmi.learner_preference.language' => array(),
-        'cmi.learner_preference.delivery_speed' => array(),
-        'cmi.learner_preference.audio_captioning' => array(),
-      );
+      $data = [
+        'cmi.location' => [],
+        'cmi.completion_status' => [],
+        'cmi.exit' => [],
+        'cmi.learner_id' => [],
+        'cmi.learner_name' => [],
+        'cmi.learner_preference._children' => [],
+        'cmi.learner_preference.audio_level' => [],
+        'cmi.learner_preference.language' => [],
+        'cmi.learner_preference.delivery_speed' => [],
+        'cmi.learner_preference.audio_captioning' => [],
+      ];
       break;
 
     case '1.2':
-      $data = array(
-        'cmi.core.lesson_location' => array(),
-        'cmi.core.lesson_status' => array(),
-        'cmi.core.exit' => array(),
-        'cmi.core.student_name' => array(),
-        'cmi.core.student_id' => array(),
-        'cmi.student_preference._children' => array(),
-        'cmi.student_preference.audio' => array(),
-        'cmi.student_preference.language' => array(),
-        'cmi.student_preference.speed' => array(),
-        'cmi.student_preference.text' => array(),
-        'cmi.core.score._children' => array(),
-      );
+      $data = [
+        'cmi.core.lesson_location' => [],
+        'cmi.core.lesson_status' => [],
+        'cmi.core.exit' => [],
+        'cmi.core.student_name' => [],
+        'cmi.core.student_id' => [],
+        'cmi.student_preference._children' => [],
+        'cmi.student_preference.audio' => [],
+        'cmi.student_preference.language' => [],
+        'cmi.student_preference.speed' => [],
+        'cmi.student_preference.text' => [],
+        'cmi.core.score._children' => [],
+      ];
       break;
   }
   return $data;
@@ -117,7 +125,7 @@ function opigno_scorm_opigno_scorm_register_cmi_data($scorm, $scos, $scorm_versi
 
   switch ($scorm_version) {
     case '2004':
-      $data = array(
+      $data = [
         'cmi.location' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.location', ''),
         'cmi.completion_status' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.completion_status', 'unknown'),
         'cmi.exit' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.exit', ''),
@@ -128,22 +136,22 @@ function opigno_scorm_opigno_scorm_register_cmi_data($scorm, $scos, $scorm_versi
         'cmi.learner_preference.language' => '',
         'cmi.learner_preference.delivery_speed' => 1,
         'cmi.learner_preference.audio_captioning' => 0,
-      );
+      ];
       break;
 
     case '1.2':
-      $data = array(
+      $data = [
         'cmi.core.lesson_location' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.core.lesson_location', ''),
         'cmi.core.exit' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.core.exit', ''),
         'cmi.core.student_id' => $account->id(),
         'cmi.core.student_name' => $learner_name,
         'cmi.student_preference._children' => "audio,language,speed,text",
-        'cmi.student_preference.audio' => array(),
-        'cmi.student_preference.language' => array(),
-        'cmi.student_preference.speed' => array(),
-        'cmi.student_preference.text' => array(),
+        'cmi.student_preference.audio' => [],
+        'cmi.student_preference.language' => [],
+        'cmi.student_preference.speed' => [],
+        'cmi.student_preference.text' => [],
         'cmi.core.score._children' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.core.score._children', 'raw,min,max'),
-      );
+      ];
       break;
   }
 
@@ -154,11 +162,16 @@ function opigno_scorm_opigno_scorm_register_cmi_data($scorm, $scos, $scorm_versi
  * Helper function to get SCORM CMI data while also providing a default value.
  *
  * @param int $uid
+ *   User ID.
  * @param int $scorm_id
+ *   Scorn ID.
  * @param string $cmi_key
+ *   Cmi key.
  * @param mixed $default_value
+ *   Default.
  *
  * @return mixed|null
+ *   Scorm cmi.
  */
 function opigno_scorm_scorm_cmi_get($uid, $scorm_id, $cmi_key, $default_value = NULL) {
   $value = opigno_scorm_cmi_get($uid, $scorm_id, $cmi_key);
@@ -169,15 +182,19 @@ function opigno_scorm_scorm_cmi_get($uid, $scorm_id, $cmi_key, $default_value = 
  * Get a CMI data value for the given SCORM.
  *
  * @param int $uid
+ *   User ID.
  * @param int $scorm_id
+ *   Scorn ID.
  * @param string $cmi_key
+ *   Cmi key.
  *
  * @return mixed|null
+ *   Scorm cmi.
  */
 function opigno_scorm_cmi_get($uid, $scorm_id, $cmi_key) {
   $data = NULL;
   $result = db_select('opigno_scorm_scorm_cmi_data', 'o')
-    ->fields('o', array('value', 'serialized'))
+    ->fields('o', ['value', 'serialized'])
     ->condition('o.uid', $uid)
     ->condition('o.scorm_id', $scorm_id)
     ->condition('o.cmi_key', $cmi_key)
@@ -195,11 +212,18 @@ function opigno_scorm_cmi_get($uid, $scorm_id, $cmi_key) {
  * Set a CMI data value for the given SCORM.
  *
  * @param int $uid
+ *   User ID.
  * @param int $scorm_id
+ *   Scorn ID.
  * @param string $cmi_key
+ *   Cmi key.
  * @param string $value
+ *   Value.
  *
  * @return bool
+ *   Scorm cmi set flag.
+ *
+ * @throws \Exception
  */
 function opigno_scorm_scorm_cmi_set($uid, $scorm_id, $cmi_key, $value) {
   if (isset($value)) {

@@ -2,15 +2,20 @@
 
 namespace Drupal\opigno_scorm;
 
-
 use Drupal\Core\Database\Connection;
 
+/**
+ * Class OpignoScormPlayer.
+ */
 class OpignoScormPlayer {
 
   protected $database;
 
   protected $scorm_service;
 
+  /**
+   * OpignoScormPlayer constructor.
+   */
   public function __construct(Connection $database, OpignoScorm $scorm_service) {
     $this->database = $database;
     $this->scorm_service = $scorm_service;
@@ -46,7 +51,7 @@ class OpignoScormPlayer {
 
     $sco_identifiers = [];
     $scos_suspend_data = [];
-    foreach ($flat_tree as $delta => $sco) {
+    foreach ($flat_tree as $sco) {
       if ($sco->scorm_type == 'sco') {
         $sco_identifiers[$sco->identifier] = $sco->id;
         $scos_suspend_data[$sco->id] = opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.suspend_data.' . $sco->id, '');
@@ -87,15 +92,19 @@ class OpignoScormPlayer {
    * Traverse the SCORM package data and construct a SCO tree.
    *
    * @param object $scorm
+   *   Scorm object.
+   * @param int $parent_identifier
+   *   Parent identifier.
    *
    * @return array
+   *   SCO tree.
    */
   private function opignoScormPlayerScormTree($scorm, $parent_identifier = 0) {
     $conenction = $this->database;
     $tree = [];
 
     $result = $conenction->select('opigno_scorm_package_scos', 'sco')
-      ->fields('sco', array('id'))
+      ->fields('sco', ['id'])
       ->condition('sco.scorm_id', $scorm->id)
       ->condition('sco.parent_identifier', $parent_identifier)
       ->execute();
@@ -117,8 +126,10 @@ class OpignoScormPlayer {
    * Helper function to flatten the SCORM tree.
    *
    * @param array $tree
+   *   Tree.
    *
    * @return array
+   *   SCORM tree.
    */
   private function opignoScormPlayerFlattenTree(array $tree) {
     $items = [];
@@ -141,8 +152,10 @@ class OpignoScormPlayer {
    * @todo Get last viewed SCO.
    *
    * @param array $flat_tree
+   *   Flat tree.
    *
    * @return object
+   *   Start SCO.
    */
   private function opignoScormPlayerStartSco(array $flat_tree) {
     foreach ($flat_tree as $sco) {
