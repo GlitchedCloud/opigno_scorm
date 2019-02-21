@@ -5,6 +5,9 @@
  * Module functionality implementation.
  */
 
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\opigno_module\Entity\OpignoAnswer;
+
 /**
  * Implements hook_field_widget_info_alter().
  */
@@ -306,5 +309,66 @@ function opigno_scorm_opigno_scorm_commit($scorm, $sco_id, $data) {
         }
         break;
     }
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function opigno_scorm_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  if ($form_id === 'opigno_answer_opigno_scorm_form') {
+    $form['actions']['submit']['#submit'][] = '_opigno_scorm_form_submit';
+  }
+}
+
+/**
+ * Form submit callback, used in opigno_h5p_form_alter().
+ *
+ * Saves user answer & correct answer patterns.
+ */
+function _opigno_scorm_form_submit($form, FormStateInterface $form_state) {
+  $storage = $form_state->getStorage();
+  if (!empty($storage['scorm_answer']) && !empty($_SESSION['scorm_answer_results'])) {
+    if (!empty($_SESSION['scorm_answer_results']['data']->cmi->interactions)) {
+      foreach ($_SESSION['scorm_answer_results']['data']->cmi->interactions as $interaction) {
+        _opigno_scorm_save_interaction($interaction, $storage['scorm_answer']);
+      }
+    }
+
+    unset($_SESSION['scorm_answer_results']);
+  }
+}
+
+/**
+ * Recursive save of xAPI data.
+ *
+ * @param mixed $interaction
+ *   Interaction object array.
+ * @param \Drupal\opigno_module\Entity\OpignoAnswer $answer
+ *   OpignoAnswer object.
+ */
+function _opigno_scorm_save_interaction($interaction, OpignoAnswer $answer) {
+  $db_connection = \Drupal::service('database');
+  $activity = $answer->getActivity();
+  try {
+    // Save SCORM interaction data.
+    $db_connection->insert('opigno_scorm_user_answer_results')
+      ->fields([
+        'interaction_id' => $interaction->id,
+        'question_id' => $activity->id(),
+        'question_vid' => $activity->getLoadedRevisionId(),
+        'answer_id' => $answer->id(),
+        'answer_vid' => $answer->getLoadedRevisionId(),
+        'interaction_type' => $interaction->type,
+        'description' => $interaction->description,
+        'correct_responses_pattern' => '',
+        'response' => $interaction->learner_response,
+        'result' => $interaction->result,
+        'timestamp' => strtotime($interaction->timestamp),
+      ])
+      ->execute();
+  }
+  catch (Exception $e) {
+    \Drupal::logger('opigno_scorm')->error($e->getMessage());
   }
 }

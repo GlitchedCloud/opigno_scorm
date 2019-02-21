@@ -2,6 +2,7 @@
 
 namespace Drupal\opigno_scorm\Controller;
 
+use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Routing\TrustedRedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -47,6 +48,11 @@ class OpignoScormController extends ControllerBase {
           list($key, $value) = explode('=', $param);
           $query[$key] = !empty($value) ? $value : '';
         }
+
+        if ($query) {
+          $query = UrlHelper::buildQuery($query);
+          $sco_path = $sco_path . '?' . $query;
+        }
       }
 
       return new TrustedRedirectResponse($sco_path);
@@ -61,6 +67,14 @@ class OpignoScormController extends ControllerBase {
    */
   public function scormCommit($opigno_scorm_id, $opigno_scorm_sco_id) {
     if (!empty($_POST['data'])) {
+      $data = json_decode($_POST['data']);
+      if (!empty($data->cmi->interactions)) {
+        $_SESSION['scorm_answer_results'] = [
+          'opigno_scorm_id' => $opigno_scorm_id,
+          'opigno_scorm_sco_id' => $opigno_scorm_sco_id,
+          'data' => $data,
+        ];
+      }
       $scorm_service = \Drupal::service('opigno_scorm.scorm');
       $scorm = $scorm_service->scormLoadById($opigno_scorm_id);
       \Drupal::moduleHandler()->invokeAll('opigno_scorm_commit', [

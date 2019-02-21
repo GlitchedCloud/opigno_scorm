@@ -402,7 +402,9 @@ class OpignoScorm {
           $items['default'] = '';
         }
 
-        $items['items'] = array_merge($this->scormExtractManifestScosItems($child['children']), $items['items']);
+        if (!empty($child['children']) && is_array($child['children'])) {
+          $items['items'] = array_merge($this->scormExtractManifestScosItems($child['children']), $items['items']);
+        }
       }
     }
     return $items;

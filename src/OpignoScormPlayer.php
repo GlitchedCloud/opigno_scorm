@@ -65,6 +65,9 @@ class OpignoScormPlayer {
         }
       }
     }
+    // Add base path for player link.
+    global $base_path;
+    $start_sco->base_path = $base_path;
     return [
       '#theme' => 'opigno_scorm__player',
       '#scorm_id' => $scorm->id,

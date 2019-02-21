@@ -254,6 +254,9 @@
         // If the value is supposed to be a child value, but the parent
         // doesn't have it, set the error to 301 and return ''.
         else if (result === OpignoScorm2004API.CHILD_DOES_NOT_EXIST) {
+          if (cmiElement === 'cmi.interactions._count') {
+            return '0';
+          }
           this.error = '301';
           return '';
         }
@@ -871,7 +874,20 @@
       'cmi.learner_preference.language',
       'cmi.learner_preference.delivery_speed',
       'cmi.learner_preference.audio_captioning',
-      'adl.nav.request'
+      'adl.nav.request',
+      'cmi.interactions',
+      'cmi.interactions._children',
+      'cmi.interactions._count',
+      'cmi.interactions.n.id',
+      'cmi.interactions.n.type',
+      'cmi.interactions.n.description',
+      'cmi.interactions.n.result',
+      'cmi.interactions.n.timestamp',
+      'cmi.interactions.n.learner_response',
+      'cmi.interactions.n.correct_responses._count',
+      'cmi.interactions.n.correct_responses.n.pattern',
+      'cmi.interactions.n.objectives._count',
+      'cmi.interactions.n.objectives.n.id'
     ];
 
     return keys.indexOf(normalizedPath) !== -1;

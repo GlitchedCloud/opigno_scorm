@@ -162,6 +162,9 @@
       // If the value is not available, set the error to 101
       // and return ''.
       if (result === OpignoScorm12API.VALUE_NOT_AVAILABLE || result === OpignoScorm12API.CMI_NOT_VALID || result === OpignoScorm12API.CHILD_DOES_NOT_EXIST) {
+        if (cmiElement === 'cmi.interactions._count' && result === OpignoScorm12API.CHILD_DOES_NOT_EXIST) {
+          return '0';
+        }
         this.error = '101';
         return '';
       }
@@ -624,7 +627,20 @@
       'cmi.student_preference.audio',
       'cmi.student_preference.language',
       'cmi.student_preference.speed',
-      'cmi.student_preference.text'
+      'cmi.student_preference.text',
+      'adl.nav.request',
+      'cmi.interactions',
+      'cmi.interactions._children',
+      'cmi.interactions._count',
+      'cmi.interactions.n.id',
+      'cmi.interactions.n.type',
+      'cmi.interactions.n.result',
+      'cmi.interactions.n.timestamp',
+      'cmi.interactions.n.learner_response',
+      'cmi.interactions.n.correct_responses._count',
+      'cmi.interactions.n.correct_responses.n.pattern',
+      'cmi.interactions.n.objectives._count',
+      'cmi.interactions.n.objectives.n.id'
     ];
 
     return keys.indexOf(normalizedPath) !== -1;
