@@ -334,7 +334,7 @@ function opigno_scorm_update_8002() {
       'interaction_id' => [
         'description' => 'Question ID.',
         'type' => 'varchar',
-        'length' => 32,
+        'length' => 255,
         'not null' => TRUE,
         'default' => '',
       ],

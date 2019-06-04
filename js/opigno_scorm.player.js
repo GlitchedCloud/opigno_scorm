@@ -70,8 +70,9 @@
           }
           // Listen on commit event, and send the data to the server.
           scormAPIobject.bind(eventName, function(value, data, scoId) {
+            var baseUrl = drupalSettings.path.baseUrl ? drupalSettings.path.baseUrl : '/';
             $.ajax({
-              url: '/opigno-scorm/scorm/' + $element.data('scorm-id') + '/' + scoId + '/commit',
+              url: baseUrl + 'opigno-scorm/scorm/' + $element.data('scorm-id') + '/' + scoId + '/commit',
               data: { data: JSON.stringify(data) },
               async:   false,
               dataType: 'json',

@@ -84,6 +84,7 @@ function opigno_scorm_opigno_scorm_register_cmi_paths($scorm_version) {
         'cmi.location' => [],
         'cmi.completion_status' => [],
         'cmi.exit' => [],
+        'cmi.entry' => [],
         'cmi.learner_id' => [],
         'cmi.learner_name' => [],
         'cmi.learner_preference._children' => [],
@@ -99,6 +100,7 @@ function opigno_scorm_opigno_scorm_register_cmi_paths($scorm_version) {
         'cmi.core.lesson_location' => [],
         'cmi.core.lesson_status' => [],
         'cmi.core.exit' => [],
+        'cmi.core.entry' => [],
         'cmi.core.student_name' => [],
         'cmi.core.student_id' => [],
         'cmi.student_preference._children' => [],
@@ -132,6 +134,7 @@ function opigno_scorm_opigno_scorm_register_cmi_data($scorm, $scos, $scorm_versi
         'cmi.location' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.location', ''),
         'cmi.completion_status' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.completion_status', 'unknown'),
         'cmi.exit' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.exit', ''),
+        'cmi.entry' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.entry', ''),
         'cmi.learner_id' => $account->id(),
         'cmi.learner_name' => $learner_name,
         'cmi.learner_preference._children' => "audio_level,language,delivery_speed,audio_captioning",
@@ -147,10 +150,11 @@ function opigno_scorm_opigno_scorm_register_cmi_data($scorm, $scos, $scorm_versi
         'cmi.core.lesson_location' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.core.lesson_location', ''),
         'cmi.core.exit' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.core.exit', ''),
         'cmi.core.student_id' => $account->id(),
+        'cmi.core.entry' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.core.entry', ''),
         'cmi.core.student_name' => $learner_name,
         'cmi.student_preference._children' => "audio,language,speed,text",
         'cmi.student_preference.audio' => [],
-        'cmi.student_preference.language' => [],
+        'cmi.student_preference.language' => '',
         'cmi.student_preference.speed' => [],
         'cmi.student_preference.text' => [],
         'cmi.core.score._children' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.core.score._children', 'raw,min,max'),
@@ -354,21 +358,39 @@ function _opigno_scorm_save_interaction($interaction, OpignoAnswer $answer) {
     // Save SCORM interaction data.
     $db_connection->insert('opigno_scorm_user_answer_results')
       ->fields([
-        'interaction_id' => $interaction->id,
+        'interaction_id' => _opigno_scorm_format_string_length($interaction->id, 255),
         'question_id' => $activity->id(),
         'question_vid' => $activity->getLoadedRevisionId(),
         'answer_id' => $answer->id(),
         'answer_vid' => $answer->getLoadedRevisionId(),
-        'interaction_type' => $interaction->type,
-        'description' => $interaction->description,
+        'interaction_type' => _opigno_scorm_format_string_length($interaction->type, 32),
+        'description' => _opigno_scorm_format_string_length($interaction->description, 255),
         'correct_responses_pattern' => '',
-        'response' => $interaction->learner_response,
-        'result' => $interaction->result,
-        'timestamp' => strtotime($interaction->timestamp),
+        'response' => isset($interaction->learner_response) ? _opigno_scorm_format_string_length($interaction->learner_response, 255) : '',
+        'result' => _opigno_scorm_format_string_length($interaction->result, 16),
+        'timestamp' => !empty($interaction->timestamp) ? strtotime($interaction->timestamp) : time(),
       ])
       ->execute();
   }
   catch (Exception $e) {
     \Drupal::logger('opigno_scorm')->error($e->getMessage());
   }
+}
+
+/**
+ * Truncates string by wanted length if necessary.
+ *
+ * @param string $string
+ *   String to format.
+ * @param int $length
+ *   Necessary string length.
+ *
+ * @return string
+ *   Formatted string.
+ */
+function _opigno_scorm_format_string_length($string, $length) {
+  if (strlen($string) > $length) {
+    return substr($string, 0, $length);
+  }
+  return $string;
 }
