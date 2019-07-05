@@ -840,6 +840,7 @@
       // Real CMI paths, from SORM 2004 3rd edition requirement document.
       'cmi._version',
       'cmi.exit',
+      'cmi.entry',
       'cmi.success_status',
       'cmi.completion_status',
       'cmi.score.raw',

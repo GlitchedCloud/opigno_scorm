@@ -200,7 +200,7 @@ function opigno_scorm_scorm_cmi_get($uid, $scorm_id, $cmi_key, $default_value = 
  */
 function opigno_scorm_cmi_get($uid, $scorm_id, $cmi_key) {
   $data = NULL;
-  $result = db_select('opigno_scorm_scorm_cmi_data', 'o')
+  $result = \Drupal::database()->select('opigno_scorm_scorm_cmi_data', 'o')
     ->fields('o', ['value', 'serialized'])
     ->condition('o.uid', $uid)
     ->condition('o.scorm_id', $scorm_id)
@@ -243,7 +243,7 @@ function opigno_scorm_scorm_cmi_set($uid, $scorm_id, $cmi_key, $value) {
       $value = (int) $value;
     }
 
-    $result = db_merge('opigno_scorm_scorm_cmi_data')
+    $result = \Drupal::database()->merge('opigno_scorm_scorm_cmi_data')
       ->keys([
         'uid' => $uid,
         'scorm_id' => $scorm_id,
