@@ -208,14 +208,14 @@ function opigno_scorm_schema() {
         'interaction_id' => [
           'description' => 'Question ID.',
           'type' => 'varchar',
-          'length' => 32,
+          'length' => 255,
           'not null' => TRUE,
           'default' => '',
         ],
         'interaction_type' => [
           'description' => 'Question type.',
           'type' => 'varchar',
-          'length' => 32,
+          'length' => 191,
           'not null' => TRUE,
           'default' => '',
         ],
@@ -401,7 +401,7 @@ function opigno_scorm_update_8003() {
   if ($schema->fieldExists($table_name, 'interaction_id')) {
     $schema->changeField($table_name, 'interaction_id', 'interaction_id', [
       'type' => 'varchar',
-      'length' => 255,
+      'length' => 191,
     ]);
   }
 }
