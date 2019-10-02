@@ -392,7 +392,7 @@ function opigno_scorm_update_8002() {
 }
 
 /**
- * Update required activities field. Set default value to NULL.
+ * Update iteraction_id field in table 'opigno_scorm_user_answer_results'
  */
 function opigno_scorm_update_8003() {
   $table_name = 'opigno_scorm_user_answer_results';
@@ -407,7 +407,7 @@ function opigno_scorm_update_8003() {
 }
 
 /**
- * Update required activities field. Set default value to NULL.
+ * Update iteraction_id field in table opigno_scorm_user_answer_results
  */
 function opigno_scorm_update_8004() {
   $table_name = 'opigno_scorm_user_answer_results';
