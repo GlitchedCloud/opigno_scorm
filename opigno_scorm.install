@@ -392,9 +392,16 @@ function opigno_scorm_update_8002() {
 }
 
 /**
- * Update required activities field. Set default value to NULL.
+ * Update 'interaction_id' field in the table 'opigno_scorm_user_answer_results'
  */
 function opigno_scorm_update_8003() {
+  // Delete unused update.
+}
+
+/**
+ * Update 'interaction_id' field in the table 'opigno_scorm_user_answer_results'
+ */
+function opigno_scorm_update_8004() {
   $table_name = 'opigno_scorm_user_answer_results';
 
   $schema = \Drupal::database()->schema();
