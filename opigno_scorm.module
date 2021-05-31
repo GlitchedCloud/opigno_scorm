@@ -354,6 +354,18 @@ function _opigno_scorm_form_submit($form, FormStateInterface $form_state) {
 function _opigno_scorm_save_interaction($interaction, OpignoAnswer $answer) {
   $db_connection = \Drupal::service('database');
   $activity = $answer->getActivity();
+
+  $response = '';
+  if (!empty($interaction->learner_response)) {
+    $response = $interaction->learner_response;
+  }
+  elseif (!empty($interaction->student_response)) {
+    $response = $interaction->student_response;
+  }
+  if ($response) {
+    $response = _opigno_scorm_format_string_length($response, 255);
+  }
+
   try {
     // Save SCORM interaction data.
     $db_connection->insert('opigno_scorm_user_answer_results')
@@ -366,7 +378,7 @@ function _opigno_scorm_save_interaction($interaction, OpignoAnswer $answer) {
         'interaction_type' => _opigno_scorm_format_string_length($interaction->type, 32),
         'description' => _opigno_scorm_format_string_length($interaction->description, 255),
         'correct_responses_pattern' => '',
-        'response' => isset($interaction->learner_response) ? _opigno_scorm_format_string_length($interaction->learner_response, 255) : '',
+        'response' => $response,
         'result' => _opigno_scorm_format_string_length($interaction->result, 16),
         'timestamp' => !empty($interaction->timestamp) ? strtotime($interaction->timestamp) : time(),
       ])

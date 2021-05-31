@@ -636,7 +636,7 @@
       'cmi.interactions.n.type',
       'cmi.interactions.n.result',
       'cmi.interactions.n.timestamp',
-      'cmi.interactions.n.learner_response',
+      'cmi.interactions.n.student_response',
       'cmi.interactions.n.correct_responses._count',
       'cmi.interactions.n.correct_responses.n.pattern',
       'cmi.interactions.n.objectives._count',

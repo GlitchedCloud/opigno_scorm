@@ -389,6 +389,17 @@ class OpignoScorm {
             $metadata[strtolower($meta['name'])] = $meta['tagData'];
           }
         }
+        if (!empty($metadata)) {
+          return $metadata;
+        }
+      }
+      else {
+        if (isset($child['children'])) {
+          $metadata = $this->scormExtractManifestMetadata($child);
+          if (!empty($metadata)) {
+            return $metadata;
+          }
+        }
       }
     }
     return $metadata;
