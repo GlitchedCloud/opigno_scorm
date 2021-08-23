@@ -776,8 +776,36 @@
             if (path === '0' && data.length === undefined) {
               // Just resetting data to [] loses it's relationship with this.data. We have no choice
               // but to use eval() here.
-              eval('this.data.' + prevPaths.join('.') + ' = [];');
-              eval('data = this.data.' + prevPaths.join('.') + ';');
+              if (prevPaths[0].length && prevPaths[0] === 'cmi' && prevPaths[1].length && prevPaths[1] === 'interactions') {
+                let command_eval = 'this.data';
+                for (let i = 0; i < prevPaths.length; i++) {
+                  if (jQuery.isNumeric(prevPaths[i])) {
+                    command_eval = command_eval + '[' + prevPaths[i] + ']';
+                  }
+                  else {
+                    command_eval = command_eval + '.' + prevPaths[i];
+                  }
+                }
+                command_eval = command_eval + ' = [];';
+                eval(command_eval);
+
+                command_eval = 'data = this.data';
+                for (let i = 0; i < prevPaths.length; i++) {
+                  if (jQuery.isNumeric(prevPaths[i])) {
+                    command_eval = command_eval + '[' + prevPaths[i] + ']';
+                  }
+                  else {
+                    command_eval = command_eval + '.' + prevPaths[i];
+                  }
+                }
+                command_eval = command_eval + ';';
+                eval(command_eval);
+              }
+              else {
+                eval('this.data.' + prevPaths.join('.') + ' = [];');
+                eval('data = this.data.' + prevPaths.join('.') + ';');
+              }
+
               data.push({});
             }
             // If the parent is an array object, but the given key is out of bounds, throw an error.

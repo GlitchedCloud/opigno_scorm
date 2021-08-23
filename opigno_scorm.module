@@ -356,14 +356,24 @@ function _opigno_scorm_save_interaction($interaction, OpignoAnswer $answer) {
   $activity = $answer->getActivity();
 
   $response = '';
-  if (!empty($interaction->learner_response)) {
+  if (isset($interaction->learner_response)) {
     $response = $interaction->learner_response;
   }
-  elseif (!empty($interaction->student_response)) {
+  elseif (isset($interaction->student_response)) {
     $response = $interaction->student_response;
   }
-  if ($response) {
+  if ($response != '') {
     $response = _opigno_scorm_format_string_length($response, 255);
+  }
+
+  if (!empty($interaction->correct_responses) && key_exists(0, $interaction->correct_responses)) {
+    try {
+      $correct_responses_pattern = $interaction->correct_responses[0]->pattern;
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('opigno_scorm')->error($e->getMessage());
+      \Drupal::messenger()->addMessage($e->getMessage(), 'error');
+    }
   }
 
   try {
@@ -377,7 +387,7 @@ function _opigno_scorm_save_interaction($interaction, OpignoAnswer $answer) {
         'answer_vid' => $answer->getLoadedRevisionId(),
         'interaction_type' => _opigno_scorm_format_string_length($interaction->type, 32),
         'description' => _opigno_scorm_format_string_length($interaction->description, 255),
-        'correct_responses_pattern' => '',
+        'correct_responses_pattern' => isset($correct_responses_pattern) ? $correct_responses_pattern : '',
         'response' => $response,
         'result' => _opigno_scorm_format_string_length($interaction->result, 16),
         'timestamp' => !empty($interaction->timestamp) ? strtotime($interaction->timestamp) : time(),
