@@ -26,6 +26,7 @@ class OpignoScormPlayer {
    */
   public function toRendarableArray($scorm) {
     $account = \Drupal::currentUser();
+    $uid = $account->id();
     // Get SCORM API version.
     $metadata = unserialize($scorm->metadata);
     if (strpos($metadata['schemaversion'], '1.2') !== FALSE) {
@@ -49,15 +50,67 @@ class OpignoScormPlayer {
     // Get CMI data for each SCO.
     $data = opigno_scorm_add_cmi_data($scorm, $flat_tree, $scorm_version);
 
+    // Disallow SCORM package resuming for anonymous.
+    if ($uid === 0 && $scorm_version == '1.2') {
+      $data['cmi.core.lesson_location'] = '';
+      $data['cmi.core.lesson_status'] = '';
+      $data['cmi.core.exit'] = '';
+      $data['cmi.core.entry'] = '';
+      $data['cmi.core.student_id'] = '';
+      $data['cmi.core.student_name'] = '';
+      $data['cmi.student_preference._children'] = '';
+      $data['cmi.student_preference.audio'] = '';
+      $data['cmi.student_preference.language'] = '';
+      $data['cmi.student_preference.speed'] = '';
+      $data['cmi.student_preference.text'] = '';
+      $data['cmi.core.score._children'] = '';
+      $data['cmi.suspend_data'] = '';
+      if (!empty($data['cmi.objectives'])) {
+        foreach ($data['cmi.objectives'] as &$objective) {
+          $objective['score']->raw = 0;
+          $objective['score']->min = 0;
+          $objective['score']->max = 0;
+          $objective['status'] = '';
+        }
+      }
+    }
+    if ($uid === 0 && $scorm_version == '2004') {
+      $data['cmi.location'] = '';
+      $data['cmi.completion_status'] = 'unknown';
+      $data['cmi.exit'] = '';
+      $data['cmi.entry'] = '';
+      $data['cmi.learner_id'] = '';
+      $data['cmi.learner_name'] = '';
+      $data['cmi.learner_preference._children'] = '';
+      $data['cmi.learner_preference.audio_level'] = '';
+      $data['cmi.learner_preference.language'] = '';
+      $data['cmi.learner_preference.delivery_speed'] = '';
+      $data['cmi.learner_preference.audio_captioning'] = '';
+      $data['cmi.success_status'] = '';
+      $data['cmi.suspend_data'] = '';
+
+      if (!empty($data['cmi.objectives'])) {
+        foreach ($data['cmi.objectives'] as &$objective) {
+          $objective['score']->scaled = 0;
+          $objective['score']->raw = 0;
+          $objective['score']->min = 0;
+          $objective['score']->max = 0;
+          $objective['success_status'] = '';
+          $objective['completion_status'] = '';
+          $objective['progress_measure'] = '';
+        }
+      }
+    }
+
     $sco_identifiers = [];
     $scos_suspend_data = [];
     foreach ($flat_tree as $sco) {
       if ($sco->scorm_type == 'sco') {
         $sco_identifiers[$sco->identifier] = $sco->id;
-        $scos_suspend_data[$sco->id] = opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.suspend_data.' . $sco->id, '');
+        $scos_suspend_data[$sco->id] = opigno_scorm_scorm_cmi_get($uid, $scorm->id, 'cmi.suspend_data.' . $sco->id, '');
       }
     }
-    $last_user_sco = opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'user.sco', '');
+    $last_user_sco = opigno_scorm_scorm_cmi_get($uid, $scorm->id, 'user.sco', '');
     if ($last_user_sco != '') {
       foreach ($flat_tree as $sco) {
         if ($last_user_sco == $sco->id && !empty($sco->launch)) {

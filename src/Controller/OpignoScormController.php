@@ -5,6 +5,7 @@ namespace Drupal\opigno_scorm\Controller;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Routing\TrustedRedirectResponse;
+use Opis\JsonSchema\Validator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -66,17 +67,23 @@ class OpignoScormController extends ControllerBase {
    * Scorm data commit method.
    */
   public function scormCommit($opigno_scorm_id, $opigno_scorm_sco_id) {
+    $data = NULL;
     $data_content = $GLOBALS['request']->getContent();
-
     if (!empty($_POST['data'])) {
-      $data = json_decode($_POST['data']);
+      $data = self::jsonDecodeValidated($_POST['data']);
     }
     elseif ($data_content) {
-      $data = json_decode($data_content);
+      $data = self::jsonDecodeValidated($data_content);
     }
 
+    $schema = json_decode(file_get_contents(
+      drupal_get_path('module', 'opigno_scorm') . '/json-schema/api-2004.json'
+    ));
+
     if (!empty($data)) {
-      if (!empty($data->cmi->interactions)) {
+      $validator = new Validator();
+      $result = $validator->validate($data, $schema);
+      if ($result->isValid() && !empty($data->cmi->interactions)) {
         $_SESSION['scorm_answer_results'] = [
           'opigno_scorm_id' => $opigno_scorm_id,
           'opigno_scorm_sco_id' => $opigno_scorm_sco_id,
@@ -94,6 +101,28 @@ class OpignoScormController extends ControllerBase {
     }
     else {
       return new JsonResponse(['error' => 1, 'message' => 'no data received']);
+    }
+  }
+
+  /**
+   * Decoding JSon data with the length and errors validation.
+   *
+   * @param string $data
+   *   Decoded string of JSON data.
+   *
+   * @return mixed|null
+   *   A valid JSON or empty string in case of error.
+   */
+  public static function jsonDecodeValidated(string $data, int $limit = 1, int $flags = JSON_THROW_ON_ERROR, int $depth = 512) {
+    $size_is_valid = (!isset($data[$limit * 1024 * 1024]));
+    try {
+      if (!$size_is_valid) {
+        throw new \Exception('Invalid data size.');
+      }
+      return json_decode($data, FALSE, $depth, $flags);
+    }
+    catch (\Exception | \JsonException $e) {
+      return NULL;
     }
   }
 
