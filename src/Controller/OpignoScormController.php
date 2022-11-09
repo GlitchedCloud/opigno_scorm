@@ -41,7 +41,7 @@ class OpignoScormController extends ControllerBase {
 
       // Get the SCO location on the filesystem.
       $sco_location = "{$scorm->extracted_dir}/$launch";
-      $sco_path = file_create_url($sco_location);
+      $sco_path = \Drupal::service('file_url_generator')->generateAbsoluteString($sco_location);
 
       // Where there any parameters ? If so, prepare them for Drupal.
       if (!empty($parameters)) {
@@ -77,7 +77,7 @@ class OpignoScormController extends ControllerBase {
     }
 
     $schema = json_decode(file_get_contents(
-      drupal_get_path('module', 'opigno_scorm') . '/json-schema/api-2004.json'
+      \Drupal::service('extension.list.module')->getPath('opigno_scorm') . '/json-schema/api-2004.json'
     ));
 
     if (!empty($data)) {

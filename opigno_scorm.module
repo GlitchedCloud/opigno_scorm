@@ -7,6 +7,7 @@
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\opigno_module\Entity\OpignoAnswer;
+use Drupal\Core\Entity\EntityTypeInterface;
 
 /**
  * Implements hook_field_widget_info_alter().
@@ -182,7 +183,7 @@ function opigno_scorm_opigno_scorm_register_cmi_data($scorm, $scos, $scorm_versi
  */
 function opigno_scorm_scorm_cmi_get($uid, $scorm_id, $cmi_key, $default_value = NULL) {
   $value = opigno_scorm_cmi_get($uid, $scorm_id, $cmi_key);
-  return isset($value) ? $value : $default_value;
+  return $value ?? $default_value;
 }
 
 /**
@@ -420,10 +421,10 @@ function _opigno_scorm_format_string_length($string, $length) {
 /**
  * Implements hook_entity_bundle_field_info_alter().
  */
-function opigno_scorm_entity_bundle_field_info_alter(&$fields, \Drupal\Core\Entity\EntityTypeInterface $entity_type, $bundle) {
+function opigno_scorm_entity_bundle_field_info_alter(&$fields, EntityTypeInterface $entity_type, $bundle) {
   if ($bundle === 'opigno_scorm') {
     if (isset($fields['opigno_scorm_package'])) {
-      // Use the ID as defined in the annotation of the constraint definition
+      // Use the ID as defined in the annotation of the constraint definition.
       $fields['opigno_scorm_package']->addConstraint('ScormPackage', []);
     }
   }

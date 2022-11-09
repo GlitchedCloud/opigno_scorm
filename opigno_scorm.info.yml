@@ -1,5 +1,5 @@
 name: Opigno SCORM
 type: module
 description: It implements the SCORM feature in Opigno, allowing to load and play SCORM packages within Opigno trainings.
-core_version_requirement: ^9
+core_version_requirement: ^9 || ^10
 package: Opigno
