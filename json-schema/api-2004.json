@@ -15,9 +15,6 @@
       "title": "Scorm_version",
       "type": "string",
       "default": "",
-      "examples": [
-        "2004"
-      ],
       "pattern": "^.*$"
     },
     "cmi": {
@@ -38,8 +35,7 @@
         "score",
         "success_status",
         "objectives",
-        "suspend_data",
-        "interactions"
+        "suspend_data"
       ],
       "properties": {
         "_version": {
@@ -62,7 +58,7 @@
         "location": {
           "$id": "#root/cmi/location",
           "title": "Location",
-          "type": "string",
+          "type": ["string", "integer"],
           "default": "",
           "pattern": "^.*$"
         },
@@ -90,8 +86,8 @@
         "learner_id": {
           "$id": "#root/cmi/learner_id",
           "title": "Learner_id",
-          "type": "integer",
-          "default": 0
+          "type": ["integer", "string"],
+          "default": ""
         },
         "learner_name": {
           "$id": "#root/cmi/learner_name",
@@ -161,28 +157,28 @@
             "raw": {
               "$id": "#root/cmi/score/raw",
               "title": "Raw",
-              "type": "string",
+              "type": ["string", "integer", "number"],
               "default": "",
               "pattern": "^.*$"
             },
             "min": {
               "$id": "#root/cmi/score/min",
               "title": "Min",
-              "type": "string",
+              "type": ["string", "integer", "number"],
               "default": "",
               "pattern": "^.*$"
             },
             "max": {
               "$id": "#root/cmi/score/max",
               "title": "Max",
-              "type": "string",
+              "type": ["string", "integer", "number"],
               "default": "",
               "pattern": "^.*$"
             },
             "scaled": {
               "$id": "#root/cmi/score/scaled",
               "title": "Scaled",
-              "type": "string",
+              "type": ["string", "integer", "number"],
               "default": "",
               "pattern": "^.*$"
             }

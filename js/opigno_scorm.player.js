@@ -64,14 +64,15 @@
               alertDataStored = false;
 
           player.init();
-          var eventName = 'commit';
-          if (settings.scormVersion === '1.2') {
-            eventName = 'commit12';
-          }
-          // Listen on commit event, and send the data to the server.
-          scormAPIobject.bind(eventName, function(value, data, scoId) {
-            var baseUrl = drupalSettings.path.baseUrl ? drupalSettings.path.baseUrl : '/';
 
+          var is12 = settings.scormVersion === '1.2';
+          var commitEventName = 'commit' + (is12 ? '12' : '');
+          var postSetValueEventName = 'post-setvalue' + (is12 ? '12' : '');
+
+
+          // Listen on commit event, and send the data to the server.
+          scormAPIobject.bind(commitEventName, function(value, data, scoId) {
+            var baseUrl = drupalSettings.path.baseUrl ? drupalSettings.path.baseUrl : '/';
             if (navigator.sendBeacon) {
               let url = baseUrl + 'opigno-scorm/scorm/' + $element.data('scorm-id') + '/' + scoId + '/commit';
               let json = JSON.stringify(data);
@@ -92,6 +93,12 @@
               });
             }
           });
+          scormAPIobject.bind(postSetValueEventName, function (cmiElement, value) {
+            if (cmiElement === 'cmi.suspend_data') {
+              commitCallback();
+            }
+          });
+
 
           $("#edit-submit").bind("click", function () {
               var $el = $(document),
@@ -115,10 +122,10 @@
 
           // Listen to the unload event. Some users click "Next" or go to a different page, expecting
           // their data to be saved. We try to commit the data for them, hoping ot will get stored.
-          $(window).bind('beforeunload', function() {
+          var commitCallback = function() {
             if (settings.scormVersion === '1.2') {
               if (!scormAPIobject.isFinished) {
-                scormAPIobject.LMSFinish('');
+                scormAPIobject.LMSCommit('');
                 alertDataStored = true;
               }
             }
@@ -126,13 +133,16 @@
               if (!scormAPIobject.isTerminated) {
                 scormAPIobject.Commit('');
                 alertDataStored = true;
-                //return Drupal.t('It seems you did not finish the SCORM course, or maybe the SCORM course did not save your results. Should we try to store it for you ?');
               }
             }
-          });
+          };
+          $(window).bind('beforeunload', commitCallback);
+          // Trigger commit every minute.
+          setInterval(commitCallback, 30000)
 
           // Add a class to the player, so the CSS can style it differently if needed.
           $element.addClass('js-processed');
+
           first = false;
         });
       }

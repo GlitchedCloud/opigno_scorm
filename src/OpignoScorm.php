@@ -3,70 +3,146 @@
 namespace Drupal\opigno_scorm;
 
 use Drupal\Core\Database\Connection;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\file\Entity\File;
+use Drupal\opigno_module\Traits\FileSecurity;
+use Drupal\opigno_module\Traits\UnsafeFileValidation;
 
 /**
- * Class OpignoScorm.
+ * The Opigno SCORM service definition.
+ *
+ * @package Drupal\opigno_scorm
  */
 class OpignoScorm {
 
+  use UnsafeFileValidation;
+  use FileSecurity;
+  use StringTranslationTrait;
+
+  /**
+   * The database connection service.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
   protected $database;
+
+  /**
+   * The file system service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected $fileSystem;
+
+  /**
+   * The logger service.
+   *
+   * @var \Psr\Log\LoggerInterface
+   */
+  protected $logger;
+
+  /**
+   * The messenger service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
 
   /**
    * OpignoScorm constructor.
    */
-  public function __construct(Connection $database) {
+  public function __construct(
+    Connection $database,
+    FileSystemInterface $file_system,
+    LoggerChannelFactoryInterface $logger,
+    MessengerInterface $messenger
+  ) {
     $this->database = $database;
+    $this->fileSystem = $file_system;
+    $this->logger = $logger->get('opigno_scorm');
+    $this->messenger = $messenger;
   }
 
-  public function unzipPackage(File $file) {
-    $path = \Drupal::service('file_system')->realpath($file->getFileUri());
+  /**
+   * Public directories will be protected by adding an .htaccess.
+   *
+   * @param string $directory
+   *   A string reference containing the name of a directory path or URI.
+   *
+   * @return bool
+   *   TRUE if the directory exists (or was created), is writable and is
+   *   protected (if it is public). FALSE otherwise.
+   */
+  protected static function prepareDirectory(string $directory): bool {
+    if (0 === strpos($directory, 'public://')) {
+      return static::writeHtaccess($directory);
+    }
+    return TRUE;
+  }
+
+  /**
+   * Unzip Package.
+   */
+  public function unzipPackage(File $file, string $base_path = 'public://external_package_extracted') {
+    $path = $this->fileSystem->realpath($file->getFileUri());
     $zip = new \ZipArchive();
     $result = $zip->open($path);
     if ($result === TRUE) {
-      $extract_dir = 'public://opigno_scorm_extracted/scorm_' . $file->id();
+      if (!static::validate($zip)) {
+        $this->messenger->addMessage($this->t('Unsafe files detected.'), 'error');
+        $zip->close();
+        $this->fileSystem->delete($path);
+
+        return FALSE;
+      }
+
+      static::prepareDirectory($base_path);
+      $extract_dir = $base_path . '/scorm_' . $file->id();
       $zip->extractTo($extract_dir);
       $zip->close();
 
       return TRUE;
     }
-    else {
-      $error = 'none';
-      switch ($result) {
-        case \ZipArchive::ER_EXISTS:
-          $error = 'ER_EXISTS';
-          break;
 
-        case \ZipArchive::ER_INCONS:
-          $error = 'ER_INCONS';
-          break;
+    $error = 'none';
+    switch ($result) {
+      case \ZipArchive::ER_EXISTS:
+        $error = 'ER_EXISTS';
+        break;
 
-        case \ZipArchive::ER_INVAL:
-          $error = 'ER_INVAL';
-          break;
+      case \ZipArchive::ER_INCONS:
+        $error = 'ER_INCONS';
+        break;
 
-        case \ZipArchive::ER_NOENT:
-          $error = 'ER_NOENT';
-          break;
+      case \ZipArchive::ER_INVAL:
+        $error = 'ER_INVAL';
+        break;
 
-        case \ZipArchive::ER_NOZIP:
-          $error = 'ER_NOZIP';
-          break;
+      case \ZipArchive::ER_NOENT:
+        $error = 'ER_NOENT';
+        break;
 
-        case \ZipArchive::ER_OPEN:
-          $error = 'ER_OPEN';
-          break;
+      case \ZipArchive::ER_NOZIP:
+        $error = 'ER_NOZIP';
+        break;
 
-        case \ZipArchive::ER_READ:
-          $error = 'ER_READ';
-          break;
+      case \ZipArchive::ER_OPEN:
+        $error = 'ER_OPEN';
+        break;
 
-        case \ZipArchive::ER_SEEK:
-          $error = 'ER_SEEK';
-          break;
-      }
-      \Drupal::logger('opigno_scorm')->error("An error occured when unziping the SCORM package data. Error: !error", ['!error' => $error]);
+      case \ZipArchive::ER_READ:
+        $error = 'ER_READ';
+        break;
+
+      case \ZipArchive::ER_SEEK:
+        $error = 'ER_SEEK';
+        break;
     }
+    $this->logger->error("An error occurred when unzipping the SCORM package data. Error: %error", [
+      '%error' => $error,
+    ]);
 
     return FALSE;
   }
@@ -109,7 +185,7 @@ class OpignoScorm {
       if ($this->scormSave($scorm)) {
         // Store each SCO.
         if (!empty($manifest_data['scos']['items'])) {
-          foreach ($manifest_data['scos']['items'] as $i => $sco_item) {
+          foreach ($manifest_data['scos']['items'] as $sco_item) {
             $sco = (object) [
               'scorm_id' => $scorm->id,
               'organization' => $sco_item['organization'],
@@ -127,17 +203,14 @@ class OpignoScorm {
               // @todo Store SCO attributes.
             }
             else {
-              \Drupal::logger('opigno_scorm')
-                ->error('An error occured when saving an SCO.');
+              $this->logger->error('An error occurred when saving an SCO.');
             }
           }
         }
         return TRUE;
       }
-      else {
-        \Drupal::logger('opigno_scorm')
-          ->error('An error occured when saving the SCORM package data.');
-      }
+
+      $this->logger->error('An error occurred when saving the SCORM package data.');
     }
 
     return FALSE;
@@ -365,7 +438,7 @@ class OpignoScorm {
       ->execute();
 
     while ($row = $result->fetchObject()) {
-      $attributes[$row->attribute] = !empty($row->serialized) ? unserialize($row->value) : $row->value;
+      $attributes[$row->attribute] = !empty($row->serialized) ? unserialize($row->value, ['allowed_classes' => FALSE]) : $row->value;
     }
 
     return $attributes;

@@ -335,8 +335,20 @@ function _opigno_scorm_form_submit($form, FormStateInterface $form_state) {
   $storage = $form_state->getStorage();
   if (!empty($storage['scorm_answer']) && !empty($_SESSION['scorm_answer_results'])) {
     if (!empty($_SESSION['scorm_answer_results']['data']->cmi->interactions)) {
-      foreach ($_SESSION['scorm_answer_results']['data']->cmi->interactions as $interaction) {
-        _opigno_scorm_save_interaction($interaction, $storage['scorm_answer']);
+      $interactions = $_SESSION['scorm_answer_results']['data']->cmi->interactions;
+      if (count($interactions) > 1) {
+        $interactions = array_reverse($interactions);
+      }
+
+      $processed = [];
+      foreach ($interactions as $interaction) {
+        if (empty($interaction->description)) {
+          $interaction->description = $interaction->id ?? '';
+        }
+        if (array_search($interaction->description, $processed) === FALSE) {
+          _opigno_scorm_save_interaction($interaction, $storage['scorm_answer']);
+          $processed[] = $interaction->description;
+        }
       }
     }
 

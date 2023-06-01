@@ -76,8 +76,10 @@ class OpignoScormController extends ControllerBase {
       $data = self::jsonDecodeValidated($data_content);
     }
 
+    $json_schema_file = $data->scorm_version == '2004' ? 'api-2004.json' : 'api-12.json';
+
     $schema = json_decode(file_get_contents(
-      \Drupal::service('extension.list.module')->getPath('opigno_scorm') . '/json-schema/api-2004.json'
+      \Drupal::service('extension.list.module')->getPath('opigno_scorm') . '/json-schema/' . $json_schema_file
     ));
 
     if (!empty($data)) {

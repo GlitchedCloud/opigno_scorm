@@ -3,38 +3,98 @@
 namespace Drupal\opigno_scorm;
 
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
- * Class OpignoScormPlayer.
+ * Defines the service to work with a SCORM player.
+ *
+ * @package Drupal\opigno_scorm
  */
 class OpignoScormPlayer {
 
+  use StringTranslationTrait;
+
+  /**
+   * The DB connection service.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
   protected $database;
 
-  protected $scorm_service;
+  /**
+   * The Opigno SCORM service.
+   *
+   * @var \Drupal\opigno_scorm\OpignoScorm
+   */
+  protected $scormService;
+
+  /**
+   * The current user account.
+   *
+   * @var \Drupal\Core\Session\AccountInterface
+   */
+  protected $account;
+
+  /**
+   * The messenger service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
+
+  /**
+   * The logger service.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   */
+  protected $logger;
 
   /**
    * OpignoScormPlayer constructor.
+   *
+   * @param \Drupal\Core\Database\Connection $database
+   *   The DB connection service.
+   * @param \Drupal\opigno_scorm\OpignoScorm $scorm_service
+   *   The Opigno SCORM service.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   The current user account.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger service.
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger
+   *   The logger service.
    */
-  public function __construct(Connection $database, OpignoScorm $scorm_service) {
+  public function __construct(
+    Connection $database,
+    OpignoScorm $scorm_service,
+    AccountInterface $account,
+    MessengerInterface $messenger,
+    LoggerChannelFactoryInterface $logger
+  ) {
     $this->database = $database;
-    $this->scorm_service = $scorm_service;
+    $this->scormService = $scorm_service;
+    $this->account = $account;
+    $this->messenger = $messenger;
+    $this->logger = $logger->get('opigno_scorm');
   }
 
   /**
    * Build rendarable array for scorm package output.
    */
   public function toRendarableArray($scorm) {
-    $account = \Drupal::currentUser();
-    $uid = $account->id();
+    $error_msg = $this->t('Invalid SCORM package.');
+    if (!$scorm) {
+      $this->messenger->addError($error_msg);
+      $this->logger->error($error_msg);
+      return [];
+    }
+
+    $uid = $this->account->id();
     // Get SCORM API version.
-    $metadata = unserialize($scorm->metadata);
-    if (strpos($metadata['schemaversion'], '1.2') !== FALSE) {
-      $scorm_version = '1.2';
-    }
-    else {
-      $scorm_version = '2004';
-    }
+    $metadata = unserialize($scorm->metadata, ['allowed_classes' => FALSE]);
+    $scorm_version = str_contains($metadata['schemaversion'], '1.2') ? '1.2' : '2004';
 
     // Get the SCO tree.
     $tree = $this->opignoScormPlayerScormTree($scorm);
@@ -42,8 +102,13 @@ class OpignoScormPlayer {
 
     // Get the start SCO.
     $start_sco = $this->opignoScormPlayerStartSco($flat_tree);
+    if (!$start_sco) {
+      $this->messenger->addError($error_msg);
+      $this->logger->error($error_msg);
+      return NULL;
+    }
 
-    /* @todo Replace with custom event subscriber implementation. */
+    // @todo Replace with custom event subscriber implementation.
     // Get implemented CMI paths.
     $paths = opigno_scorm_add_cmi_paths($scorm_version);
 
@@ -149,29 +214,25 @@ class OpignoScormPlayer {
    *
    * @param object $scorm
    *   Scorm object.
-   * @param int $parent_identifier
+   * @param int|string $parent_identifier
    *   Parent identifier.
    *
    * @return array
    *   SCO tree.
    */
-  private function opignoScormPlayerScormTree($scorm, $parent_identifier = 0) {
-    $conenction = $this->database;
+  private function opignoScormPlayerScormTree(object $scorm, int|string $parent_identifier = 0): array {
     $tree = [];
 
-    $result = $conenction->select('opigno_scorm_package_scos', 'sco')
+    $result = $this->database->select('opigno_scorm_package_scos', 'sco')
       ->fields('sco', ['id'])
       ->condition('sco.scorm_id', $scorm->id)
       ->condition('sco.parent_identifier', $parent_identifier)
       ->execute();
 
     while ($sco_id = $result->fetchField()) {
-      $sco = $this->scorm_service->scormLoadSco($sco_id);
-
+      $sco = $this->scormService->scormLoadSco($sco_id);
       $children = $this->opignoScormPlayerScormTree($scorm, $sco->identifier);
-
       $sco->children = $children;
-
       $tree[] = $sco;
     }
 
@@ -187,7 +248,7 @@ class OpignoScormPlayer {
    * @return array
    *   SCORM tree.
    */
-  private function opignoScormPlayerFlattenTree(array $tree) {
+  private function opignoScormPlayerFlattenTree(array $tree): array {
     $items = [];
 
     if (!empty($tree)) {

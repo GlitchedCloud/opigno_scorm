@@ -21,10 +21,11 @@ class ScormPackageConstraintValidator extends ConstraintValidator {
     $activity = $item->getEntity();
 
     $scorm_file = $activity->get('opigno_scorm_package')->entity;
-    /* @var \Drupal\opigno_scorm\OpignoScorm $scorm_controller */
+    /** @var \Drupal\opigno_scorm\OpignoScorm $scorm_controller */
     $scorm_controller = \Drupal::service('opigno_scorm.scorm');
-    $scorm_controller->unzipPackage($scorm_file);
-    $extract_dir = 'public://opigno_scorm_extracted/scorm_' . $scorm_file->id();
+    $base_path = 'public://opigno_scorm_extracted';
+    $scorm_controller->unzipPackage($scorm_file, $base_path);
+    $extract_dir = "$base_path/scorm_" . $scorm_file->id();
 
     // This is a standard: the manifest file will always be here.
     $manifest_file = $extract_dir . '/imsmanifest.xml';
@@ -34,17 +35,18 @@ class ScormPackageConstraintValidator extends ConstraintValidator {
       $files = scandir($extract_dir);
       $count_files = count($files);
 
-      if ($count_files == 3 && is_dir($extract_dir. '/' . $files[2])) {
-        $subfolder_files = scandir($extract_dir. '/' . $files[2]);
+      if ($count_files == 3 && is_dir($extract_dir . '/' . $files[2])) {
+        $subfolder_files = scandir($extract_dir . '/' . $files[2]);
 
         if (in_array('imsmanifest.xml', $subfolder_files)) {
-          $source = $extract_dir. '/' . $files[2];
+          $source = $extract_dir . '/' . $files[2];
 
           $i = new \RecursiveDirectoryIterator($source);
-          foreach($i as $f) {
-            if($f->isFile()) {
+          foreach ($i as $f) {
+            if ($f->isFile()) {
               rename($f->getPathname(), $extract_dir . '/' . $f->getFilename());
-            } else if($f->isDir()) {
+            }
+            elseif ($f->isDir()) {
               rename($f->getPathname(), $extract_dir . '/' . $f->getFilename());
               unlink($f->getPathname());
             }
@@ -52,7 +54,6 @@ class ScormPackageConstraintValidator extends ConstraintValidator {
           $validation = TRUE;
         }
       }
-
 
       if ($validation == FALSE) {
         $this->context->addViolation($constraint->missingManifestFile);
