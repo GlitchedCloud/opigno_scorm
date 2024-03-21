@@ -1,5 +1,6 @@
 opigno-scorm-player:
   version: 1.x
+  header: true
   css:
     theme:
       css/opigno_scorm.player.css: {}
