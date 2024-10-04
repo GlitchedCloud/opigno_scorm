@@ -93,6 +93,7 @@ function opigno_scorm_opigno_scorm_register_cmi_paths($scorm_version) {
         'cmi.learner_preference.language' => [],
         'cmi.learner_preference.delivery_speed' => [],
         'cmi.learner_preference.audio_captioning' => [],
+        'cmi.suspend_data' => []
       ];
       break;
 
@@ -110,6 +111,7 @@ function opigno_scorm_opigno_scorm_register_cmi_paths($scorm_version) {
         'cmi.student_preference.speed' => [],
         'cmi.student_preference.text' => [],
         'cmi.core.score._children' => [],
+        'cmi.suspend_data' => []
       ];
       break;
   }
