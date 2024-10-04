@@ -12,6 +12,7 @@ For more information about the original project, visit the project page at https
 ## Patches
     - Fix missing json-schema dependency. (Authored by Liam McDermott)
     - Add header: true to library definition. (Authored by catch)
+    - Fix cmi.suspend_data not being correctly saved (Authored by ankur & Armon Castor)
 
 ## Usage
 Note: This a replacement of the original module. Do not use both in the same site. 

@@ -145,6 +145,7 @@ function opigno_scorm_opigno_scorm_register_cmi_data($scorm, $scos, $scorm_versi
         'cmi.learner_preference.language' => '',
         'cmi.learner_preference.delivery_speed' => 1,
         'cmi.learner_preference.audio_captioning' => 0,
+        'cmi.suspend_data' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.suspend_data', ''),
       ];
       break;
 
@@ -161,6 +162,7 @@ function opigno_scorm_opigno_scorm_register_cmi_data($scorm, $scos, $scorm_versi
         'cmi.student_preference.speed' => [],
         'cmi.student_preference.text' => [],
         'cmi.core.score._children' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.core.score._children', 'raw,min,max'),
+        'cmi.suspend_data' => opigno_scorm_scorm_cmi_get($account->id(), $scorm->id, 'cmi.suspend_data', ''),
       ];
       break;
   }
