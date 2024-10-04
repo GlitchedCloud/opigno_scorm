@@ -75,13 +75,15 @@
 
               if (navigator.sendBeacon) {
                 let url = baseUrl + 'opigno-scorm/scorm/' + $element.data('scorm-id') + '/' + scoId + '/commit';
-                let json = JSON.stringify(data);
+                // TODO: I don't think this is a safe way to get the node id....
+                let json = JSON.stringify({data, nodeId: $element.children().children().data('node-id')});
                 navigator.sendBeacon(url, json);
               }
               else {
                 $.ajax({
                   url: baseUrl + 'opigno-scorm/scorm/' + $element.data('scorm-id') + '/' + scoId + '/commit',
-                  data: { data: JSON.stringify(data) },
+                  // TODO: I'm not sure if this implementation is even correct...
+                  data: json.stringify({data, nodeId: $element.children().children().data('node-id')}),
                   async:   false,
                   dataType: 'json',
                   type: 'post',
@@ -102,7 +104,8 @@
                 var baseUrl = drupalSettings.path.baseUrl ? drupalSettings.path.baseUrl : '/';
                 $.ajax({
                     url: baseUrl + 'opigno-scorm/scorm/' + $element.data('scorm-id') + '/' + scoId + '/commit',
-                    data: { data: JSON.stringify(scormAPIobject.data) },
+                    // TODO: I'm not sure if this implementation is even correct...
+                    data: json.stringify({ data: scormAPIobject.data, nodeId: $element.children().children().data('node-id') }),
                     async: false,
                     dataType: 'json',
                     type: 'post',

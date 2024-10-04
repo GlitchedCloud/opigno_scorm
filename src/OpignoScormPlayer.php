@@ -25,6 +25,7 @@ class OpignoScormPlayer {
    * Build rendarable array for scorm package output.
    */
   public function toRendarableArray($scorm) {
+    $node = \Drupal::routeMatch()->getParameter('node');
     $account = \Drupal::currentUser();
     $uid = $account->id();
     // Get SCORM API version.
@@ -124,6 +125,7 @@ class OpignoScormPlayer {
     return [
       '#theme' => 'opigno_scorm__player',
       '#scorm_id' => $scorm->id,
+      '#node_id' => $node->id(),
       '#tree' => count($flat_tree) == 2 ? NULL : $tree,
       '#start_sco' => $start_sco,
       '#attached' => [

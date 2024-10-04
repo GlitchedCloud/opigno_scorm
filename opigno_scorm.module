@@ -22,7 +22,7 @@ function opigno_scorm_field_widget_info_alter(array &$info) {
 function opigno_scorm_theme() {
   return [
     'opigno_scorm__player' => [
-      'variables' => ['scorm_id' => NULL, 'tree' => [], 'start_sco' => NULL],
+      'variables' => ['scorm_id' => NULL, 'node_id' => NULL, 'tree' => [], 'start_sco' => NULL],
       'template' => 'opigno-scorm--player',
     ],
     'opigno_scorm__player_tree' => [

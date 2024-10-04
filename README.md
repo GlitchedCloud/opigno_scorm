@@ -15,6 +15,8 @@ For more information about the original project, visit the project page at https
     - Fix cmi.suspend_data not being correctly saved (Authored by ankur & Armon Castor)
     - Fix player's attach method being attached to multiple time / to multiple elements. (Authored by Armon Castor)
 
+    - Modified so the client has the node ID and it can then be sent back to the server with the other SCORM commit data. (Authored by Armon Castor)
+
 ## Usage
 Note: This a replacement of the original module. Do not use both in the same site. 
 
