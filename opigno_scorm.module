@@ -8,6 +8,7 @@
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\opigno_module\Entity\OpignoAnswer;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\node\Entity\Node;
 
 /**
  * Implements hook_field_widget_info_alter().
@@ -274,6 +275,9 @@ function opigno_scorm_scorm_cmi_set($uid, $scorm_id, $cmi_key, $value) {
  * Implements hook_opigno_scorm_commit().
  */
 function opigno_scorm_opigno_scorm_commit($scorm, $sco_id, $data) {
+  $nid = $data->nodeId;
+  $data = $data->data;
+  $storage = \Drupal::entityTypeManager()->getStorage('storage');
   $account = Drupal::currentUser();
 
   if (!empty($data->scorm_version)) {
@@ -318,6 +322,37 @@ function opigno_scorm_opigno_scorm_commit($scorm, $sco_id, $data) {
         }
         break;
     }
+  }
+
+  // Load existing node if it exists
+  $existing_nodes = $storage->loadByProperties([
+    'type' => 'course_status',
+    'field_course_id' => $nid,
+    'field_user' => $data->cmi->learner_id,
+  ]);
+
+  if ($existing_nodes) {
+    if ($data->cmi->completion_status == 'completed') {
+      // update existing node instead
+      $node = reset($existing_nodes);
+      $node->set('field_completed', 1);
+      $node->set('field_completed_on', time());
+      $node->save();
+    }
+    else {
+          // Node exists, but scorm is not yet completed, could store the suspend state, but we will ignore. 
+    } 
+  } else {
+    // create new node
+    $node = $storage->create([
+      'name' => 'Course status for course ' . Node::load($nid)->getTitle() . ' and user ' . \Drupal\user\Entity\User::load($data->cmi->learner_id)->getDisplayName(),
+      'field_user' => $data->cmi->learner_id,
+      'field_course_id' => $nid,
+      'field_completed' => ($data->cmi->completion_status == 'completed' ? 1 : 0),
+      'field_completed_on' => ($data->cmi->completion_status == 'completed' ? time() : NULL),
+      'type' => 'course_status',
+    ]);
+    $node->save();
   }
 }
 

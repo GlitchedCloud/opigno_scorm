@@ -6,6 +6,7 @@
     "license": "GPL-2.0-or-later",
     "require": {
         "drupal/core": "^9 || ^10",
-        "opis/json-schema": "^2.3"
+        "opis/json-schema": "^2.3",
+        "drupal/storage": "^1.3"
     }
 }
