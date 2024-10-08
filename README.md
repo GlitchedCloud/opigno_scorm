@@ -51,14 +51,24 @@ Note: This a replacement of the original module. Do not use both in the same sit
     drush en opigno_scorm -y
     ```
 
-4. **Clear Cache:**
+4. **Turn off JavaScript Aggregation:**
+    - Turn off JavaScript aggregation in Drupal (or you will suffer... you have been warned).
+
+5. **Create Content Type and Storage Type:**
+    - Create a content type for SCORM content, and a storage type called `course_status` with the following fields:
+        - **Completed**: `field_completed` (Boolean)
+        - **Completed on**: `field_completed_on` (Timestamp)
+        - **Course ID**: `field_course_id` (Entity reference, Content type: SCORM Content)
+        - **User**: `field_user` (Entity reference, Reference type: User)
+
+6. **Clear Cache:**
     - Clear the cache.
 
     ```bash
     drush cr
     ```
 
-5. **Profit.**
+7. **Profit.**
 
 You have now successfully installed the `opigno_scorm` module on your Drupal site.
 
