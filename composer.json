@@ -1,5 +1,5 @@
 {
-    "name": "drupal/opigno_scorm",
+    "name": "glitchedcloud/opigno_scorm",
     "type": "drupal-module",
     "description": "Opigno scorm.",
     "homepage": "http://drupal.org/project/opigno_scorm",

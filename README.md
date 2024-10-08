@@ -17,22 +17,29 @@ For more information about the original project, visit the project page at https
 
     - Modified so the client has the node ID and it can then be sent back to the server with the other SCORM commit data. (Authored by Armon Castor)
     - Modified so some information about the [SCORM] course and its completion status are stored in a storage entity. (Authored by Armon Castor)
+
 ## Usage
 Note: This a replacement of the original module. Do not use both in the same site. 
 
-1. **Download the Module:**
-    - Clone the repository or download the ZIP file from the repository page.
-    - Extract the contents if you downloaded the ZIP file.
+1. **Add Custom Repository:**
+    - Add the custom repository to your `composer.json` file.
 
-    ```bash
-    git clone https://github.com/GlitchedCloud/opigno_scorm.git
+    ```json
+    {
+        "repositories": [
+            {
+                "type": "vcs",
+                "url": "https://github.com/glitchedcloud/opigno_scorm"
+            }
+        ]
+    }
     ```
 
-2. **Place the Module:**
-    - Move the extracted folder to your Drupal site's modules directory, typically located at `modules/custom`.
+2. **Require the Module via Composer:**
+    - Use Composer to require the module.
 
     ```bash
-    mv opigno_scorm /path/to/your/drupal/site/modules/custom/
+    composer require glitchedcloud/opigno_scorm 
     ```
 
 3. **Enable the Module:**
