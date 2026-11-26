@@ -12,7 +12,7 @@ use Drupal\file\Plugin\Field\FieldType\FileItem;
  *   id = "opigno_scorm_package",
  *   label = @Translation("Scorm package"),
  *   description = @Translation("This field stores the ID of a Scorm package file."),
- *   category = @Translation("Reference"),
+ *   category = "file_upload",
  *   default_widget = "file_generic",
  *   default_formatter = "opigno_scorm_field_formatter",
  *   list_class = "\Drupal\opigno_scorm\Plugin\Field\FieldType\OpignoScormPackageItemList",
