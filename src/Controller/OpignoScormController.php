@@ -7,6 +7,7 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Routing\TrustedRedirectResponse;
 use Opis\JsonSchema\Validator;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -66,9 +67,9 @@ class OpignoScormController extends ControllerBase {
   /**
    * Scorm data commit method.
    */
-  public function scormCommit($opigno_scorm_id, $opigno_scorm_sco_id) {
+  public function scormCommit($opigno_scorm_id, $opigno_scorm_sco_id, Request $request) {
     $data = NULL;
-    $data_content = $GLOBALS['request']->getContent();
+    $data_content = $request->getContent();
     if (!empty($_POST['data'])) {
       $data = self::jsonDecodeValidated($_POST['data']);
     }
